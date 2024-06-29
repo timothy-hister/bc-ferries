@@ -1,7 +1,7 @@
-setup_remote = function() {
-  driver = RSelenium::rsDriver(browser="firefox", chromever = NULL, geckover = "latest", iedrver = NULL, phantomver = NULL)
-  remote <<- driver[['client']]
-}
+# setup_remote = function() {
+#   driver = RSelenium::rsDriver(browser="firefox", chromever = NULL, geckover = "latest", iedrver = NULL, phantomver = NULL)
+#   remote <<- driver[['client']]
+# }
 
 # page 1
 page_1 = function(from = "Vancouver (Horseshoe Bay)", to = "Sunshine Coast (Langdale)", date = Sys.Date() + 1) {

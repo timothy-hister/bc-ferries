@@ -11,9 +11,17 @@ codes = tribble(~long_name, ~short_name, ~code,
   "Nanaimo (Departure Bay)", "Nanaimo (NAN)", "NAN"
 )
 
-source("functions.R", local = T)
+#source("functions.R", local = T)
 source("ui.R", local = T)
 
+devtools::source_url("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/test.R")
+
+remote = setup_remote()
+remote$navigate("https://www.bcferries.com")
+pageSource = driver$getPageSource()[[1]]
+html = read_html(pageSource)
+txt = html %>% html_elements("p") %>% paste(collapse=",")
+  
 server = function(input, output, session) {
   
   # constrain arrivals
@@ -41,9 +49,12 @@ server = function(input, output, session) {
   # constrain return leg
   observeEvent(input$date, updateAirDateInput(session = session, inputId = "return_date", value = input$date + 1))
   
-  results = eventReactive(input$search, {
-    devtools::source_url()
-    driver = setup_remote()
+  output$txt = renderText(txt)
+  
+  #results = eventReactive(input$search, {
+   # remote$navigate("https://www.bcferries.com")
+    
+    
     #driver = RSelenium::rsDriver(browser="firefox", chromever = NULL, geckover = "latest", iedrver = NULL, phantomver = NULL)
   #   driver = RSelenium::rsDriver(browser="chrome", chromever = 'latest', geckover = NULL, iedrver = NULL, phantomver = NULL)
   #   
@@ -55,7 +66,7 @@ server = function(input, output, session) {
   #   dates = seq.Date(from = input$date - input$plusminus, to = input$date + input$plusminus, by=1)
   #   dates = dates[dates >= today()]
   #   make_results(input$departure, input$arrival, dates)
-   })
+  # })
   # 
   # results2 = eventReactive(input$search, {
   #   if (!input$roundtrip) return(NULL)

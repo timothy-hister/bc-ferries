@@ -12,12 +12,14 @@ ui = page_sidebar(
     actionBttn("search", "Search Sailings!")
   ),
   
-  accordion(
-    id = "accordion",
-    open = c("First Leg"),
-    accordion_panel("First Leg", reactableOutput("first_leg") %>% withSpinner(), value = "panel1"
-    ),
-    accordion_panel("Return Leg", reactableOutput("return_leg") %>% withSpinner(), value = "panel2"
-    )
-  )
+  # accordion(
+  #   id = "accordion",
+  #   open = c("First Leg"),
+  #   accordion_panel("First Leg", reactableOutput("first_leg") %>% withSpinner(), value = "panel1"
+  #   ),
+  #   accordion_panel("Return Leg", reactableOutput("return_leg") %>% withSpinner(), value = "panel2"
+  #   )
+  # )
+  
+  textOutput("txt")
 )
