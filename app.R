@@ -52,8 +52,8 @@ server = function(input, output, session) {
   observe({
     i = round(runif(1) * 10)
     system("git pull")
-    system("rm output.txt")
-    system(paste0("echo '", i, "' >> output.txt"))
+    system("rm push.txt")
+    system(paste0("echo '", i, "' >> push.txt"))
     system("git add .")
     system("git commit -m 'committed'")
     system("git push")
