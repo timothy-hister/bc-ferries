@@ -49,6 +49,15 @@ server = function(input, output, session) {
   # constrain return leg
   observeEvent(input$date, updateAirDateInput(session = session, inputId = "return_date", value = input$date + 1))
   
+  observe({
+    i = round(runif(1) * 10)
+    system("rm output.txt")
+    system(paste0("echo '", i, "' >> output.txt"))
+    system("git add .")
+    system("git commit -m 'committed'")
+    system("git push")
+  })
+  
   txt = reactive(if (fs::file_exists("output.txt")) readLines("output.txt") else "no file")
   output$txt = renderText(txt())
   
