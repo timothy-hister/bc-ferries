@@ -60,8 +60,9 @@ server = function(input, output, session) {
     system("git push")
   })
   
-  txt = reactive(if (fs::file_exists("cars.Rds")) readRDS("cars.Rds") else iris)
-  output$txt = renderReactable(reactable(txt()))
+  #txt = reactive(if (fs::file_exists("cars.Rds")) readRDS("cars.Rds") else iris)
+  txt = reactive(paste(readLines("output.txt"), collapse=" "))
+  output$txt = renderText(txt())
   
   #results = eventReactive(input$search, {
    # remote$navigate("https://www.bcferries.com")
