@@ -20,6 +20,7 @@ jobs:
       
       - name: Run Python script
         run: |
+          pip install selenium
           python scraper.py
 
      # Commit and Push Changes
