@@ -35,5 +35,5 @@ jobs:
           # make commit with staged changes
           git commit -m 'files changed'
       
-          # push the commit back up to source GitHub repository
+          # push the scommit back up to source GitHub repository
           git push
