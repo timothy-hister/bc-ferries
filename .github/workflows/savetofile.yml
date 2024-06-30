@@ -22,15 +22,18 @@ jobs:
         run: |
           echo 'word up' >> output.txt
 
-      - name: Commit changes
+     # Commit and Push Changes
+      - name: Commit and Push Changes
         run: |
-          git config --global user.email "djschoo@protonmail.com"
-          git config --global user.name "djschoo"
-          git add output.txt
-          git commit -m "Add output.txt via GitHub Actions"
-          
-      - name: Push changes # push the output folder to your repo
-      uses: ad-m/github-push-action@master
-      with:
-      github_token: ${{ secrets.GITHUB_TOKEN }}
-      force: true
+          # configure user
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      
+          # stage any file changes to be committed
+          git add .
+      
+          # make commit with staged changes
+          git commit -m 'files changed'
+      
+          # push the commit back up to source GitHub repository
+          git push
