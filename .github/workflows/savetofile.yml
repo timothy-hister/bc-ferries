@@ -20,7 +20,7 @@ jobs:
       
       - name: Run Python script
         run: |
-        echo 'word up' >> output.txt
+          echo 'word up' >> output.txt
 
       - name: Commit changes
         run: |
