@@ -19,9 +19,7 @@ jobs:
           python-version: '3.10'
       
       - name: Run Python script
-        run: |
-        python printmessage.py
-      working-directory: ${{ github.workspace }}  # Specify the directory where the script is located
+        run: python printmessage.py
 
     - name: Commit changes
       run: |
