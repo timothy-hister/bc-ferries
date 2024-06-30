@@ -58,6 +58,7 @@ server = function(input, output, session) {
     system("git add .")
     system("git commit -m 'committed'")
     system("git push")
+    system("git pull")
   })
   
   #txt = reactive(if (fs::file_exists("cars.Rds")) readRDS("cars.Rds") else iris)
