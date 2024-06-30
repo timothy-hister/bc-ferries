@@ -51,10 +51,10 @@ server = function(input, output, session) {
   
   # the big question is whether we can push from shinyapps.io
   observe({
-    i = round(runif(1) * 10)
+    i = runif(10)
     system("git pull")
     if (fs::file_exists("push.txt")) system("rm push.txt")
-    system(paste0("echo '", i, "' >> push.txt"))
+    system(paste0("echo '", paste(i, collapse=','), "' >> push.txt"))
     system("git add .")
     system("git commit -m 'committed'")
     system("git push")
