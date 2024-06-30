@@ -51,6 +51,7 @@ server = function(input, output, session) {
   
   observe({
     i = round(runif(1) * 10)
+    system("git pull")
     system("rm output.txt")
     system(paste0("echo '", i, "' >> output.txt"))
     system("git add .")
