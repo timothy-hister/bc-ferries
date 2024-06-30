@@ -23,7 +23,7 @@ jobs:
 
       - name: Commit changes
         run: |
-          git config --global user.email "djschoo@protonmail.com"
+          git config --global user.email "timothyhister@protonmail.com"
           git config --global user.name "Tim H"
           git add output.txt
           git commit -m "Add output.txt via GitHub Actions"
