@@ -20,7 +20,7 @@ jobs:
       
       - name: Run Python script
         run: |
-          python printmessage.py
+          r rfun.R
 
      # Commit and Push Changes
       - name: Commit and Push Changes

@@ -49,6 +49,7 @@ server = function(input, output, session) {
   # constrain return leg
   observeEvent(input$date, updateAirDateInput(session = session, inputId = "return_date", value = input$date + 1))
   
+  # the big question is whether we can push from shinyapps.io
   observe({
     i = round(runif(1) * 10)
     system("git pull")
@@ -59,8 +60,8 @@ server = function(input, output, session) {
     system("git push")
   })
   
-  txt = reactive(if (fs::file_exists("output.txt")) readLines("output.txt") else "no file")
-  output$txt = renderText(txt())
+  txt = reactive(if (fs::file_exists("cars.Rds")) readRDS("cars.Rds") else iris)
+  output$txt = renderReactable(reactable(txt()))
   
   #results = eventReactive(input$search, {
    # remote$navigate("https://www.bcferries.com")
