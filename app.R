@@ -52,7 +52,7 @@ server = function(input, output, session) {
   observe({
     i = round(runif(1) * 10)
     system("git pull")
-    system("rm push.txt")
+    if (fs::file_exists("push.txt")) system("rm push.txt")
     system(paste0("echo '", i, "' >> push.txt"))
     system("git add .")
     system("git commit -m 'committed'")
