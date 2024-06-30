@@ -20,8 +20,7 @@ jobs:
       
       - name: Run Python script
         run: |
-        python printmessage.py
-      working-directory: ${{ github.workspace }}
+        echo 'word up' >> output.txt
 
       - name: Commit changes
         run: |
