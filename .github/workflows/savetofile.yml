@@ -20,7 +20,7 @@ jobs:
       
       - name: Run Python script
         run: |
-          python scrapery.py
+          python scraper.py
 
      # Commit and Push Changes
       - name: Commit and Push Changes
