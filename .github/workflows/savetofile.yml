@@ -28,3 +28,9 @@ jobs:
           git config --global user.name "djschoo"
           git add output.txt
           git commit -m "Add output.txt via GitHub Actions"
+          
+      - name: Push changes # push the output folder to your repo
+      uses: ad-m/github-push-action@master
+      with:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      force: true
