@@ -28,4 +28,3 @@ jobs:
           git config --global user.name "djschoo"
           git add output.txt
           git commit -m "Add output.txt via GitHub Actions"
-          git push
