@@ -14,13 +14,13 @@ codes = tribble(~long_name, ~short_name, ~code,
 #source("functions.R", local = T)
 source("ui.R", local = T)
 
-devtools::source_url("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/test.R")
+# devtools::source_url("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/test.R")
 
-remote = setup_remote()
-remote$navigate("https://www.bcferries.com")
-pageSource = driver$getPageSource()[[1]]
-html = read_html(pageSource)
-txt = html %>% html_elements("p") %>% paste(collapse=",")
+# remote = setup_remote()
+# remote$navigate("https://www.bcferries.com")
+# pageSource = driver$getPageSource()[[1]]
+# html = read_html(pageSource)
+# txt = html %>% html_elements("p") %>% paste(collapse=",")
   
 server = function(input, output, session) {
   
@@ -49,7 +49,8 @@ server = function(input, output, session) {
   # constrain return leg
   observeEvent(input$date, updateAirDateInput(session = session, inputId = "return_date", value = input$date + 1))
   
-  output$txt = renderText(txt)
+  txt = reactive(if (fs::file_exists("output.txt")) readLines("output.txt") else "no file")
+  output$txt = renderText(txt())
   
   #results = eventReactive(input$search, {
    # remote$navigate("https://www.bcferries.com")
