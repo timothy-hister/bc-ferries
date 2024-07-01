@@ -13,15 +13,27 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Python
-        uses: actions/setup-python@v5 
-        with:
-          python-version: '3.10'
+      # - name: Set up Python
+      #   uses: actions/setup-python@v5 
+      #   with:
+      #     python-version: '3.10'
+      # 
+      # - name: Run Python script
+      #   run: |
+      #     pip install selenium
+      #     python scraper.py
       
-      - name: Run Python script
+      - name: set up R
+        uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: '4.0'
+          
+      - name: install R dependencies
         run: |
-          pip install selenium
-          python scraper.py
+          R -e 'install.packages(c("RSelenium"), repos="https://cloud.r-project.org")'
+          
+      - name: run R script
+        run: Rscript sel.R
 
      # Commit and Push Changes
       - name: Commit and Push Changes
