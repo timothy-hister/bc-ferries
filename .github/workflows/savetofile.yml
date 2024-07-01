@@ -24,14 +24,17 @@ jobs:
       #     python scraper.py
       
       - name: set up R
-        uses: r-lib/actions/setup-r@v1
+        uses: r-lib/actions/setup-r@v2
           
       - name: install R dependencies
-        run: |
-          R -e 'install.packages(c("pacman"), repos="https://cloud.r-project.org")'
-          
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::pacman
+            any::RSelenium
+
       - name: run R script
-        run: Rscript rsel.R
+        run: Rscript -e 'source("rsel.R")'
 
      # Commit and Push Changes
       - name: Commit and Push Changes
