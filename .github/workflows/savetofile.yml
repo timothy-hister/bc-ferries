@@ -28,10 +28,10 @@ jobs:
           
       - name: install R dependencies
         run: |
-          R -e 'install.packages(c("RSelenium"), repos="https://cloud.r-project.org")'
+          R -e 'install.packages(c("pacman"), repos="https://cloud.r-project.org")'
           
       - name: run R script
-        run: Rscript sel.R
+        run: Rscript rsel.R
 
      # Commit and Push Changes
       - name: Commit and Push Changes
