@@ -1,4 +1,4 @@
-name: Python Script Workflow
+name: R Script Workflow
 
 on:
   push:

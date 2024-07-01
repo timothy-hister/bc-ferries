@@ -1,3 +1,3 @@
 pacman::p_load(RSelenium)
 
-rsDriver()
+rsDriver(browser = 'firefox', chromever = NULL, geckover = 'latest', iedrver = NULL, phantomver = NULL)
