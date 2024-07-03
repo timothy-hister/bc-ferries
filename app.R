@@ -1,4 +1,4 @@
-pacman::p_load(shiny, bslib, RSelenium, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs)
+pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite)
 
 `%,,%` = function(a,b) paste(a,b)
 `%,%`= function(a,b) paste0(a,b)
@@ -12,6 +12,7 @@ codes = tribble(~long_name, ~short_name, ~code,
 )
 
 #source("functions.R", local = T)
+source("github.R", local = T)
 source("ui.R", local = T)
 
 # devtools::source_url("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/test.R")
@@ -21,8 +22,19 @@ source("ui.R", local = T)
 # pageSource = driver$getPageSource()[[1]]
 # html = read_html(pageSource)
 # txt = html %>% html_elements("p") %>% paste(collapse=",")
+
+
   
 server = function(input, output, session) {
+  
+  observeEvent(input$search, {
+    json = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = input$date, return_date = input$return_date, plusminus= input$plusminus) |>
+      jsonlite::toJSON()
+    jsonlite::write_json(json, "json.json")
+    token = read_lines("token.txt")
+    github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "json.json", message = "json commit")
+  })
+  
   
   # constrain arrivals
   observeEvent(input$departure, {
@@ -49,21 +61,7 @@ server = function(input, output, session) {
   # constrain return leg
   observeEvent(input$date, updateAirDateInput(session = session, inputId = "return_date", value = input$date + 1))
   
-  # the big question is whether we can push from shinyapps.io
-  observe({
-    i = runif(10)
-    system("git pull")
-    if (fs::file_exists("push.txt")) system("rm push.txt")
-    system(paste0("echo '", paste(i, collapse=','), "' >> push.txt"))
-    system("git add .")
-    system("git commit -m 'committed'")
-    system("git push")
-    system("git pull")
-  })
-  
-  #txt = reactive(if (fs::file_exists("cars.Rds")) readRDS("cars.Rds") else iris)
-  txt = reactive(paste(readLines("output.txt"), collapse=" "))
-  output$txt = renderText(txt())
+
   
   #results = eventReactive(input$search, {
    # remote$navigate("https://www.bcferries.com")

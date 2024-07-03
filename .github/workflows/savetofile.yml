@@ -1,53 +1,40 @@
-name: R Script Workflow
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  run-python-script:
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      # - name: Set up Python
-      #   uses: actions/setup-python@v5 
-      #   with:
-      #     python-version: '3.10'
-      # 
-      # - name: Run Python script
-      #   run: |
-      #     pip install selenium
-      #     python scraper.py
-      
-      - name: set up R
-        uses: r-lib/actions/setup-r@v2
-          
-      - name: install R dependencies
-        uses: r-lib/actions/setup-r-dependencies@v2
-        with:
-          packages: |
-            any::pacman
-            any::RSelenium
-
-      - name: run R script
-        run: Rscript -e 'source("rsel.R")'
-
-     # Commit and Push Changes
-      - name: Commit and Push Changes
-        run: |
-          # configure user
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-      
-          # stage any file changes to be committed
-          git add .
-      
-          # make commit with staged changes
-          git commit -m 'files changed'
-      
-          # push the commit back up to source GitHub repository
-          git push
+# name: Python Script Workflow
+# 
+# on:
+#   push:
+#     branches:
+#       - main
+# 
+# jobs:
+#   run-python-script:
+#     runs-on: ubuntu-latest
+#     
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+# 
+#       - name: Set up Python
+#         uses: actions/setup-python@v5
+#         with:
+#           python-version: '3.10'
+# 
+#       - name: Run Python script
+#         run: |
+#           pip install selenium
+#           python scraper.py
+#       
+#      # Commit and Push Changes
+#       - name: Commit and Push Changes
+#         run: |
+#           # configure user
+#           git config --global user.name "${{ github.actor }}"
+#           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+#       
+#           # stage any file changes to be committed
+#           git add .
+#       
+#           # make commit with staged changes
+#           git commit -m 'files changed'
+#       
+#           # push the commit back up to source GitHub repository
+#           git push

@@ -10,7 +10,7 @@ import os
 # CHROMEDRIVER_PATH = "C:/Users/djsch\OneDrive\Documents\Computer_Projects/BC_Ferries"
 
 # URL of the web page you want to scrape
-URL_TO_SCRAPE = "https://example.com"
+URL_TO_SCRAPE = "https://www.bcferries.com"
 
 def scrape_page(url):
     # Configure Chrome options

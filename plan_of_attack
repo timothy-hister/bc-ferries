@@ -1,0 +1,13 @@
+Shiny:
+  - user uses sidebar to fill in date, etc.
+  - user clicks 'go' button
+  - result: Github api writes a new commit to github that is a JSON file with the stuff the user selected
+
+Github:
+ - receives a gh push of the JSON file
+ - has an 'action' that automatically runs the scraper, which first reads the JSON info
+ - output is a dataframe/list of lists/whatever
+ - output is pushed to github
+ 
+ Shiny:
+  - reads the dataframe from github and displays it as a reactable or whatever
