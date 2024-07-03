@@ -28,6 +28,8 @@ source("ui.R", local = T)
 server = function(input, output, session) {
   
   observeEvent(input$search, {
+    if (fs::file_exists("json.json")) fs::file_delete("json.json")
+    if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
     json = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = input$date, return_date = input$return_date, plusminus= input$plusminus) |>
       jsonlite::toJSON()
     jsonlite::write_json(json, "json.json")
