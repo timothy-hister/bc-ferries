@@ -10,22 +10,18 @@ import datetime
 
 codes = {
   "Vancouver (Tsawwassen)": "TSA",
-  "Victoria (Swartz Bay)": "SWB"
+  "Victoria (Swartz Bay)": "SWB",
+  "Vancouver (Horseshoe Bay)": "HSB",
+  "Sunshine Coast (Langdale)": "LNG",
+  "Nanaimo (Departure Bay)": "NAN"
   }
 
-# f = open("json.json")
-# inputs = json.load(f)
-
-# for now
-inputs = {
-  "departure": "Vancouver (Tsawwassen)", 
-  "arrival": "Victoria (Swartz Bay)", 
-  "roundtrip": 1, 
-  "date": "2024-07-03", 
-  "return_date": "2024-07-04", 
-  "plusminus": 2
-}
-
+inputs = {}
+with open('shiny_inputs.txt', 'r') as file:
+  lines = file.readlines()
+  for line in lines:
+    key, value = line.strip().split('=')
+    inputs[key.strip()] = value.strip()
 
 #     "long_name": ["Vancouver (Tsawwassen)", "Vancouver (Horseshoe Bay)", "Victoria (Swartz Bay)", "Sunshine Coast (Langdale)", "Nanaimo (Departure Bay)"],
 #     "short_name": ["Vancouver (TSA)", "Vancouver (HSB)", "Victoria (SWB)", "Sunshine Coast (LNG)", "Nanaimo (NAN)"],
@@ -103,3 +99,5 @@ cards_text = '\n'.join([element.text for element in cards if element.text != '']
 file_path = "python_output.txt"
 with open(file_path, 'w') as file:
     file.write(cards_text)
+
+print('done')

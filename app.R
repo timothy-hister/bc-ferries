@@ -15,26 +15,32 @@ codes = tribble(~long_name, ~short_name, ~code,
 source("github.R", local = T)
 source("ui.R", local = T)
 
-# devtools::source_url("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/test.R")
-
-# remote = setup_remote()
-# remote$navigate("https://www.bcferries.com")
-# pageSource = driver$getPageSource()[[1]]
-# html = read_html(pageSource)
-# txt = html %>% html_elements("p") %>% paste(collapse=",")
+if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
+if (fs::file_exists("shiny_inputs.txt")) fs::file_delete("shiny_inputs.txt")
 
 
-  
 server = function(input, output, session) {
   
   observeEvent(input$search, {
-    if (fs::file_exists("json.json")) fs::file_delete("json.json")
-    if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
-    json = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = input$date, return_date = input$return_date, plusminus= input$plusminus) |>
-      jsonlite::toJSON()
-    jsonlite::write_json(json, "json.json")
+    inputs = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = input$date, return_date = input$return_date, plusminus= input$plusminus)
+    
+    
+    writeLines(paste(names(inputs), inputs, sep = "=", collapse = "\n"), "shiny_inputs.txt")
     token = read_lines("token.txt")
-    github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "json.json", message = "json commit")
+    github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "shiny_inputs.txt", message = "shiny commit")
+  })
+  
+  output$leg_1 = renderReactable({
+    sailings_list = readLines("python_output.txt")
+    w = which(sailings_list == "DEPART")
+    tibble(
+      departure_time = sailings_list[w+1],
+      duration = sailings_list[w+2],
+      arrival_time = sailings_list[w+4],
+      ferry = sailings_list[w+5],
+      cost = sailings_list[w+7]
+      ) |>
+      reactable()
   })
   
   

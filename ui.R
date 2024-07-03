@@ -11,7 +11,13 @@ ui = page_sidebar(
     airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 1),
     sliderInput("plusminus", "How many days before/after do you wanna search?", min = 0, max = 10, value = 2),
     actionBttn("search", "Search Sailings!")
+  ),
+  
+  card(
+    card_header("Leg 1"),
+    reactableOutput("leg_1") |> withSpinner()
   )
+  
   
   # accordion(
   #   id = "accordion",
