@@ -40,9 +40,9 @@ DEPART
 ARRIVE
 11:35 am
 Queen of New Westminster
-Total From
-$99.85
-View fares
+Fare at terminal
+$86.50
+Reservations sold out
 DEPART
 11:00 am
 1h 35m
@@ -140,5 +140,5 @@ ARRIVE
 10:35 pm
 Spirit of Vancouver Island
 Total From
-$69.00
+$85.00
 View fares
