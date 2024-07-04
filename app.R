@@ -22,8 +22,7 @@ if (fs::file_exists("shiny_inputs.txt")) fs::file_delete("shiny_inputs.txt")
 server = function(input, output, session) {
   
   observeEvent(input$search, {
-    inputs = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = input$date, return_date = input$return_date, plusminus= input$plusminus)
-    
+    inputs = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = format(input$date, "%Y-%m-%d"), return_date = format(input$return_date, "%Y-%m-%d"), plusminus= input$plusminus)
     
     writeLines(paste(names(inputs), inputs, sep = "=", collapse = "\n"), "shiny_inputs.txt")
     token = read_lines("token.txt")
@@ -31,7 +30,8 @@ server = function(input, output, session) {
   })
   
   output$leg_1 = renderReactable({
-    sailings_list = readLines("python_output.txt")
+    req(fs::file_exists("python_output.txt"))
+    sailings_list = readLines("shiny_inputs.txt")
     w = which(sailings_list == "DEPART")
     tibble(
       departure_time = sailings_list[w+1],

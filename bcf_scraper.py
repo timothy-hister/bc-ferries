@@ -23,6 +23,7 @@ with open('shiny_inputs.txt', 'r') as file:
     key, value = line.strip().split('=')
     inputs[key.strip()] = value.strip()
 
+
 #     "long_name": ["Vancouver (Tsawwassen)", "Vancouver (Horseshoe Bay)", "Victoria (Swartz Bay)", "Sunshine Coast (Langdale)", "Nanaimo (Departure Bay)"],
 #     "short_name": ["Vancouver (TSA)", "Vancouver (HSB)", "Victoria (SWB)", "Sunshine Coast (LNG)", "Nanaimo (NAN)"],
 #     "code": ["TSA", "HSB", "SWB", "LNG", "NAN"]
