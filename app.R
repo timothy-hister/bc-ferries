@@ -27,11 +27,12 @@ server = function(input, output, session) {
     writeLines(paste(names(inputs), inputs, sep = "=", collapse = "\n"), "shiny_inputs.txt")
     token = read_lines("token.txt")
     github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "shiny_inputs.txt", message = "shiny commit")
+    fs::file_delete("shiny_inputs.txt")
   })
   
   output$leg_1 = renderReactable({
     req(fs::file_exists("python_output.txt"))
-    sailings_list = readLines("shiny_inputs.txt")
+    sailings_list = readLines("python_output.txt")
     w = which(sailings_list == "DEPART")
     tibble(
       departure_time = sailings_list[w+1],
