@@ -1,12 +1,9 @@
 name: Python Script Workflow
 
 on:
-  workflow-dispatch:
-    inputs:
-      commit_message:
-        description: "shiny commit"
-        required: true
-
+  push:
+    branches:
+      - main
 
 jobs:
   run-python-script:
@@ -23,22 +20,24 @@ jobs:
 
       - name: Run Python script
         run: |
-          pip install selenium
-          python bcf_scraper.py
+          if [[ ${{ github.event.head_commit.message }} contains "shiny commit" ]]; then
+            pip install selenium
+            python bcf_scraper.py
           
 
      # Commit and Push Changes
       - name: Commit and Push Changes
         run: |
-          # configure user
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-
-          # stage any file changes to be committed
-          git add python_output.txt
-
-          # make commit with staged changes
-          git commit -m 'python_output.txt created'
-
-          # push the commit back up to source GitHub repository
-          git push
+          if [[ ${{ github.event.head_commit.message }} contains "shiny commit" ]]; then
+            # configure user
+            git config --global user.name "${{ github.actor }}"
+            git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+  
+            # stage any file changes to be committed
+            git add python_output.txt
+  
+            # make commit with staged changes
+            git commit -m 'python_output.txt created'
+  
+            # push the commit back up to source GitHub repository
+            git push
