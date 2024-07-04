@@ -1,6 +1,6 @@
 departure=Vancouver (Tsawwassen)
 arrival=Victoria (Swartz Bay)
-roundtrip=TRUE
-date=19907
-return_date=19908
+roundtrip=FALSE
+date=19908
+return_date=19909
 plusminus=2
