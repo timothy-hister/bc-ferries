@@ -1,0 +1,6 @@
+departure=Vancouver (Tsawwassen)
+arrival=Victoria (Swartz Bay)
+roundtrip=TRUE
+date=2024-07-04
+return_date=2024-07-05
+plusminus=2
