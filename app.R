@@ -18,7 +18,6 @@ source("ui.R", local = T)
 if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
 if (fs::file_exists("shiny_inputs.txt")) fs::file_delete("shiny_inputs.txt")
 
-
 server = function(input, output, session) {
   
   observeEvent(input$search, {
@@ -31,8 +30,9 @@ server = function(input, output, session) {
   })
   
   output$leg_1 = renderReactable({
-    req(fs::file_exists("python_output.txt"))
-    sailings_list = readLines("python_output.txt")
+    req(RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt"))
+    sailings_list = readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")
+    
     w = which(sailings_list == "DEPART")
     tibble(
       departure_time = sailings_list[w+1],
