@@ -23,6 +23,7 @@ jobs:
           if [[ ${{ github.event.head_commit.message }} contains "shiny commit" ]]; then
             pip install selenium
             python bcf_scraper.py
+          fi
           
 
      # Commit and Push Changes
@@ -41,3 +42,4 @@ jobs:
   
             # push the commit back up to source GitHub repository
             git push
+          fi
