@@ -17,6 +17,8 @@ source("ui.R", local = T)
 
 if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
 if (fs::file_exists("shiny_inputs.txt")) fs::file_delete("shiny_inputs.txt")
+fs::file_create("python_output.txt")
+github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "python_output.txt", message = "push blank python_output.txt")
 
 server = function(input, output, session) {
   
@@ -29,8 +31,7 @@ server = function(input, output, session) {
     fs::file_delete("shiny_inputs.txt")
   })
   
-  output$leg_1 = renderReactable({
-    req(RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt"))
+  result = eventReactive(input$search, {
     sailings_list = readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")
     
     w = which(sailings_list == "DEPART")
@@ -40,9 +41,10 @@ server = function(input, output, session) {
       arrival_time = sailings_list[w+4],
       ferry = sailings_list[w+5],
       cost = sailings_list[w+7]
-      ) |>
-      reactable()
+    )
   })
+  
+  output$leg_1 = renderReactable(reactable(result()))
   
   
   # constrain arrivals
