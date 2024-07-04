@@ -19,27 +19,25 @@ jobs:
           python-version: '3.10'
 
       - name: Run Python script
+        if: contains(github.event.head_commit.message, 'shiny commit')
         run: |
-          if [[ ${{ github.event.head_commit.message }} contains "shiny commit" ]]; then
-            pip install selenium
-            python bcf_scraper.py
-          fi
+          pip install selenium
+          python bcf_scraper.py
           
 
      # Commit and Push Changes
       - name: Commit and Push Changes
+        if: contains(github.event.head_commit.message, 'shiny commit')
         run: |
-          if [[ ${{ github.event.head_commit.message }} contains "shiny commit" ]]; then
-            # configure user
-            git config --global user.name "${{ github.actor }}"
-            git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-  
-            # stage any file changes to be committed
-            git add python_output.txt
-  
-            # make commit with staged changes
-            git commit -m 'python_output.txt created'
-  
-            # push the commit back up to source GitHub repository
-            git push
-          fi
+          # configure user
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+          # stage any file changes to be committed
+          git add python_output.txt
+
+          # make commit with staged changes
+          git commit -m 'python_output.txt created'
+
+          # push the commit back up to source GitHub repository
+          git push
