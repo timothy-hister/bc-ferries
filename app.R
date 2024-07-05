@@ -20,7 +20,7 @@ source("ui.R", local = T)
 if (fs::file_exists("python_output.txt")) fs::file_delete("python_output.txt")
 if (fs::file_exists("shiny_inputs.txt")) fs::file_delete("shiny_inputs.txt")
 fs::file_create("python_output.txt")
-github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "python_output.txt", message = "push blank python_output.txt")
+#github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "python_output.txt", message = "push blank python_output.txt")
 
 server = function(input, output, session) {
   
@@ -33,8 +33,18 @@ server = function(input, output, session) {
   })
   
   result = eventReactive(input$search, {
-    sailings_list = readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")
     
+    old_sailings_list = if (RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")) readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt") else NULL
+    
+    sailings_list = if (RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")) readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt") else NULL
+    
+    while(identical(old_sailings_list, sailings_list)) {
+      Sys.sleep(1)
+      sailings_list = if (RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")) readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt") else NULL
+      print(sailings_list)
+    }
+    
+    print('done loop')
     w = which(sailings_list == "DEPART")
     tibble(
       departure_time = sailings_list[w+1],
@@ -102,25 +112,6 @@ server = function(input, output, session) {
   # output$first_leg = renderReactable(reactable(results(), highlight = T, pagination = F))
   # 
   # output$return_leg = renderReactable(reactable(results2(), highlight = T, pagination = F))
-    
-  
-  observe({
-    req(input$REQUEST)
-    payload <- fromJSON(input$REQUEST)
-    
-    # Process the payload as needed
-    # Example: Log the event
-    cat("Received webhook event:", payload$hook_id, "\n")
-    
-    # Example: Update data or trigger some action based on the webhook event
-    # Your logic here...
-    
-    # Output the event to UI (for demonstration purposes)
-    output$webhook_event <- renderText({
-      paste("Received webhook event:", payload$hook_id)
-    })
-  })
-  
 }
 
 shinyApp(ui = ui, server = server)
