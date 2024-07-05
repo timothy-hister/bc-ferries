@@ -1,0 +1,144 @@
+DEPART
+6:00 am
+1h 35m
+ARRIVE
+7:35 am
+Queen of New Westminster
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+7:00 am
+1h 35m
+ARRIVE
+8:35 am
+Spirit of British Columbia
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+8:00 am
+1h 35m
+ARRIVE
+9:35 am
+Coastal Celebration
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+9:00 am
+1h 35m
+ARRIVE
+10:35 am
+Spirit of Vancouver Island
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+10:00 am
+1h 35m
+ARRIVE
+11:35 am
+Queen of New Westminster
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+11:00 am
+1h 35m
+ARRIVE
+12:35 pm
+Spirit of British Columbia
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+12:00 pm
+1h 35m
+ARRIVE
+1:35 pm
+Coastal Celebration
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+1:00 pm
+1h 35m
+ARRIVE
+2:35 pm
+Spirit of Vancouver Island
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+2:00 pm
+1h 35m
+ARRIVE
+3:35 pm
+Queen of New Westminster
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+3:00 pm
+1h 35m
+ARRIVE
+4:35 pm
+Spirit of British Columbia
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+4:00 pm
+1h 35m
+ARRIVE
+5:35 pm
+Coastal Celebration
+Fare at terminal
+$86.50
+Reservations sold out
+DEPART
+5:00 pm
+1h 35m
+ARRIVE
+6:35 pm
+Spirit of Vancouver Island
+Total From
+$99.85
+View fares
+DEPART
+6:00 pm
+1h 35m
+ARRIVE
+7:35 pm
+Queen of New Westminster
+Total From
+$99.85
+View fares
+DEPART
+7:00 pm
+1h 35m
+ARRIVE
+8:35 pm
+Spirit of British Columbia
+Total From
+$99.85
+View fares
+DEPART
+8:00 pm
+1h 35m
+ARRIVE
+9:35 pm
+Coastal Celebration
+Total From
+$99.85
+View fares
+DEPART
+9:00 pm
+1h 35m
+ARRIVE
+10:35 pm
+Spirit of Vancouver Island
+Total From
+$85.00
+View fares
