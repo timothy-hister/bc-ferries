@@ -37,7 +37,7 @@ jobs:
           git add python_output.txt
 
           # make commit with staged changes
-          git commit -m 'python_output.txt created'
+          git commit -m 'python_output.txt created or modified'
 
           # push the commit back up to source GitHub repository
           git push

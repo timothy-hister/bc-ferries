@@ -100,7 +100,7 @@ if exists('shiny_inputs.txt'):
   
   cards = driver.find_elements(By.CLASS_NAME, "p-card")
   cards_text = '\n'.join([element.text for element in cards if element.text != ''])
-  cards_text = datetime.datetime.now() + '\n' + cards_text
+  cards_text = str(datetime.datetime.now()) + '\n' + cards_text
   
   file_path = "python_output.txt"
   with open(file_path, 'w') as file:

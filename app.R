@@ -41,7 +41,7 @@ server = function(input, output, session) {
     while(identical(old_sailings_list, sailings_list)) {
       Sys.sleep(1)
       sailings_list = if (RCurl::url.exists("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt")) readLines("https://raw.githubusercontent.com/timothy-hister/bc-ferries/main/python_output.txt") else NULL
-      print(sailings_list)
+      print(sailings_list[1])
     }
     
     print('done loop')
