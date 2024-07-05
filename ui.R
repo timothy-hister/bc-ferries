@@ -16,7 +16,9 @@ ui = page_sidebar(
   card(
     card_header("Leg 1"),
     reactableOutput("leg_1") |> withSpinner()
-  )
+  ),
+  
+  card(textOutput("webhook_event"))
   
   
   # accordion(

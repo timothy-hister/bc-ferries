@@ -11,6 +11,8 @@ codes = tribble(~long_name, ~short_name, ~code,
   "Nanaimo (Departure Bay)", "Nanaimo (NAN)", "NAN"
 )
 
+token = read_lines("token.txt")
+
 #source("functions.R", local = T)
 source("github.R", local = T)
 source("ui.R", local = T)
@@ -26,7 +28,6 @@ server = function(input, output, session) {
     inputs = list(departure = input$departure, arrival = input$arrival, roundtrip = input$roundtrip, date = format(input$date, "%Y-%m-%d"), return_date = format(input$return_date, "%Y-%m-%d"), plusminus= input$plusminus)
     
     writeLines(paste(names(inputs), inputs, sep = "=", collapse = "\n"), "shiny_inputs.txt")
-    token = read_lines("token.txt")
     github_commit(repo = "bc-ferries", branch = "main", token = token, file_path = "shiny_inputs.txt", message = "shiny commit")
     fs::file_delete("shiny_inputs.txt")
   })
@@ -102,6 +103,24 @@ server = function(input, output, session) {
   # 
   # output$return_leg = renderReactable(reactable(results2(), highlight = T, pagination = F))
     
+  
+  observe({
+    req(input$REQUEST)
+    payload <- fromJSON(input$REQUEST)
+    
+    # Process the payload as needed
+    # Example: Log the event
+    cat("Received webhook event:", payload$hook_id, "\n")
+    
+    # Example: Update data or trigger some action based on the webhook event
+    # Your logic here...
+    
+    # Output the event to UI (for demonstration purposes)
+    output$webhook_event <- renderText({
+      paste("Received webhook event:", payload$hook_id)
+    })
+  })
+  
 }
 
 shinyApp(ui = ui, server = server)
