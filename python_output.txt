@@ -1,4 +1,4 @@
-2024-07-05 04:29:33.123480
+2024-07-05 04:33:56.178640
 DEPART
 6:00 am
 1h 35m
@@ -77,9 +77,9 @@ DEPART
 ARRIVE
 3:35 pm
 Queen of New Westminster
-Total From
-$99.85
-View fares
+Fare at terminal
+$86.50
+Reservations sold out
 DEPART
 3:00 pm
 1h 35m
