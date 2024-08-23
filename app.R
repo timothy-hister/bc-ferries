@@ -14,7 +14,7 @@ berths = list(
 source("github.R", local = T)
 
 session_id = as.integer(runif(1, 0, 10^8))
-token = "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"
+token = "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"
 # note: the repo needs this: actions > general > workflow permissions > read and write
 
 ui = page_sidebar(
@@ -26,7 +26,8 @@ ui = page_sidebar(
   airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 1),
   sliderInput("plusminus", "How many days before/after do you wanna search?", min = 0, max = 10, value = 2),
   actionBttn("go", "Search Sailings!"),
-  reactableOutput("t1")
+  #reactableOutput("t1")
+  textOutput("t1")
 )
 
 server = function(input, output, session) {
@@ -69,23 +70,24 @@ server = function(input, output, session) {
   })
   
   
+  output$t1 = renderText(fileContent())
   
   
-  output$t1 = renderReactable({
-    y = fileContent() |> 
-      str_split("DEPART") |>
-      unlist() |>
-      str_split("\n")
-    
-    z = map(y, function(x) keep(x, \(z) str_detect(z, "Spirit|Coastal|Queen|\\$|am$|pm$")))
-    
-    done = map(z, \(x) t(x) |> as_tibble(.name_repair)) |>
-      bind_rows() |>
-      na.omit() |>
-      setNames(c("Departure Time", "Arrival Time", "Vessel", "Cost"))
-    
-    reactable(done)
-  })
+  # output$t1 = renderReactable({
+  #   y = fileContent() |> 
+  #     str_split("DEPART") |>
+  #     unlist() |>
+  #     str_split("\n")
+  #   
+  #   z = map(y, function(x) keep(x, \(z) str_detect(z, "Spirit|Coastal|Queen|\\$|am$|pm$")))
+  #   
+  #   done = map(z, \(x) t(x) |> as_tibble(.name_repair)) |>
+  #     bind_rows() |>
+  #     na.omit() |>
+  #     setNames(c("Departure Time", "Arrival Time", "Vessel", "Cost"))
+  #   
+  #   reactable(done)
+  # })
   
 }
 
