@@ -1,4 +1,4 @@
-pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, reticulate)
+pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs)
 
 berths = list(
   "Vancouver (Tsawwassen)",
@@ -12,9 +12,9 @@ berths = list(
 `%,%`= function(a,b) paste0(a,b)
 
 source("github.R", local = T)
+source("token.R", local = T)
 
 session_id = as.integer(runif(1, 0, 10^8))
-token = "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"
 # note: the repo needs this: actions > general > workflow permissions > read and write
 
 ui = page_sidebar(
@@ -34,6 +34,7 @@ server = function(input, output, session) {
   
   # commit to the repo
   observeEvent(input$go, {
+    if (!dir_exists("jsons")) dir_create("jsons")
     list(
       session_id = session_id,
       departure = input$departure,
