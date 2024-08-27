@@ -34,12 +34,12 @@ ui = page_sidebar(
     id = "accordion", 
     accordion_panel(
     "Outbound",
-    #reactableOutput("outbound") |> withSpinner()
-    uiOutput("outbound_ui")
+    reactableOutput("outbound") |> withSpinner()
+    #uiOutput("outbound_ui")
   ),
   accordion_panel( 
     "Return",
-    value = "return_accordion",
+    id = "return_accordion",
     reactableOutput("return") |> withSpinner()
     )
   )
@@ -62,6 +62,7 @@ server = function(input, output, session) {
     github_file = reactiveVal(F)
     fileContent = reactiveVal()
     outputs = reactiveValues()
+    go_clicked = reactiveVal(T)
   })
   
   # commit to the repo
@@ -87,6 +88,8 @@ server = function(input, output, session) {
   })
   
   observeEvent(input$go, {
+    showSpinner("outbound")
+    showSpinner("return")
     while(T) {
       print("github:" %,,% github_file())
       tryCatch({
@@ -131,10 +134,10 @@ server = function(input, output, session) {
     
     outputs$outbound = outbound_df
     outputs$return = return_df
-  })
+  })  
   
   output$outbound = renderReactable({
-    #req(outputs$outbound)
+    req(outputs$outbound)
     reactable(outputs$outbound)
   })
   
@@ -143,7 +146,7 @@ server = function(input, output, session) {
     reactable(outputs$return)
   })
   
-  output$outbound_ui = renderUI(if (github_file()) withSpinner(reactableOutput("t1")))
+  #output$outbound_ui = renderUI(if (github_file()) withSpinner(reactableOutput("outbound")))
   
 }
 
