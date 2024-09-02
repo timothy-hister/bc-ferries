@@ -1,4 +1,6 @@
-pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs)
+pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy)
+
+is_test_run = F
 
 berths = list(
   "Vancouver (Tsawwassen)",
@@ -13,8 +15,10 @@ berths = list(
 
 source("github.R", local = T)
 source("token.R", local = T)
+source("make_table.R", local = T)
+source("make_reactable.R", local = T)
 
-session_id = as.integer(runif(1, 0, 10^8))
+session_id = if_else(is_test_run, sample(c(22733055L, 2641081L), 1), as.integer(runif(1, 0, 10^8)))
 # note: the repo needs this: actions > general > workflow permissions > read and write
 
 ui = page_sidebar(
@@ -25,30 +29,38 @@ ui = page_sidebar(
     pickerInput("departure", "Departure", choices = berths, selected = "Vancouver (Tsawwassen)", multiple = F),
     pickerInput("arrival", "Arrival", choices = berths, selected = "Victoria (Swartz Bay)", multiple = F),
     prettySwitch("roundtrip", "Roundtrip?", value = F),
-    airDatepickerInput("date", "Select Your Date", minDate = today(), value = today() + 10),
-    hidden(airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 1)),
+    airDatepickerInput("date", "Select Your Date", minDate = today(), value = today() + 2),
+    hidden(airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 4)),
     sliderInput("plusminus", "How many days before/after do you wanna search?", min = 0, max = 10, value = 2),
     actionBttn("go", "Search Sailings!")
   ),
   accordion(
     id = "accordion", 
     accordion_panel(
-    "Outbound",
-    reactableOutput("outbound") |> withSpinner()
-    #uiOutput("outbound_ui")
-  ),
-  accordion_panel( 
-    "Return",
-    id = "return_accordion",
-    reactableOutput("return") |> withSpinner()
+      title = "Outbound",
+      reactableOutput("outbound") |> withSpinner(),
+      value = "outbound_panel"
+    ),
+    div(
+      id = "return_accordion",
+      accordion_panel(
+        title = "Return",
+        reactableOutput("return") |> withSpinner(),
+        value = "return_panel"
+      )
     )
   )
 )
 
 server = function(input, output, session) {
-  github_file = reactiveVal(F)
-  fileContent = reactiveVal()
-  outputs = reactiveValues()
+  observe({
+    accordion_panel_update(id = "accordion", target = "outbound_panel", title = HTML("<strong>Outbound</strong>:", input$departure, "==>", input$arrival))
+    accordion_panel_update(id = "accordion", target = "return_panel", title = HTML("<strong>Return</strong>:", input$arrival, "==>", input$departure))
+  })
+  
+  output$header_outbound = renderText(paste("Outbound:", input$departure))
+  output$header_return = renderText(paste("Return:", input$arrival))
+                                      
   
   observeEvent(input$roundtrip, if (input$roundtrip) {
     show("return_accordion")
@@ -58,38 +70,47 @@ server = function(input, output, session) {
     hide("return_date")
   })
   
+  github_file = reactiveVal(F)
+  fileContent = reactiveVal()
+  outputs = reactiveValues()
+  
   observeEvent(input$go, {
+    print("Let's A Go!")
+    
     github_file = reactiveVal(F)
     fileContent = reactiveVal()
     outputs = reactiveValues()
     go_clicked = reactiveVal(T)
+    
+    showSpinner("outbound")
+    showSpinner("return")
   })
   
   # commit to the repo
   observeEvent(input$go, {
-    if (!dir_exists("jsons")) dir_create("jsons")
-    
-    sailings = list(session_id = session_id)
-    sailings$outbound_dates = input$date + seq(-input$plusminus, input$plusminus)
-    sailings$departure = input$departure
-    sailings$arrival = input$arrival
-    sailings$roundtrip = as.integer(input$roundtrip)
-    sailings$return_dates = input$return_date + seq(-input$plusminus, input$plusminus)
-    
-    sailings |>
-      write_json("jsons/bcf_" %,% session_id %,% ".json")
-    github_commit(
-      repo = "bcftest", 
-      branch = "main", 
-      token = token, 
-      file_path = "jsons/bcf_" %,% session_id %,% ".json", 
-      message = "shiny_commit_" %,% session_id
-    )
+    if (!is_test_run) {
+      if (!dir_exists("jsons")) dir_create("jsons")
+      
+      sailings = list(session_id = session_id)
+      sailings$outbound_dates = input$date + seq(-input$plusminus, input$plusminus)
+      sailings$departure = input$departure
+      sailings$arrival = input$arrival
+      sailings$roundtrip = as.integer(input$roundtrip)
+      sailings$return_dates = input$return_date + seq(-input$plusminus, input$plusminus)
+      
+      sailings |>
+        write_json("jsons/bcf_" %,% session_id %,% ".json")
+      github_commit(
+        repo = "bcftest", 
+        branch = "main", 
+        token = token, 
+        file_path = "jsons/bcf_" %,% session_id %,% ".json", 
+        message = "shiny_commit_" %,% session_id
+      )
+    }
   })
   
   observeEvent(input$go, {
-    showSpinner("outbound")
-    showSpinner("return")
     while(T) {
       print("github:" %,,% github_file())
       tryCatch({
@@ -107,46 +128,23 @@ server = function(input, output, session) {
     
     print("github:" %,,% github_file())
     
-    all_df =  fileContent() |>
-      map(\(x) str_split(x[[4]], "\n") |> 
-            map(\(y) y[c(2, 5, 6, 8)] |> 
-                  t() |> 
-                  as_tibble()
-            ) |> 
-            bind_rows() |> 
-            mutate(date = x[[3]]) |> 
-            set_names("depart_time", "arrive_time", "vessel", "cost", "date") |>
-            mutate(cost = as.double(str_replace(cost, "\\$", ""))) |>
-            mutate(date = ymd(date))
-      )
     
-    which_outbound = map_lgl(fileContent(), \(x) x[[1]][[1]] == fileContent()[[1]][[1]])
-    
-    outbound_df = all_df[which_outbound] |>
-      bind_rows() |>
-      select(-arrive_time, -vessel) |>
-      pivot_wider(names_from = date, values_from = cost)
-    
-    return_df = if (all(which_outbound)) NULL else all_df[!which_outbound] |> 
-      bind_rows() |>
-      select(-arrive_time, -vessel) |>
-      pivot_wider(names_from = date, values_from = cost)
-    
-    outputs$outbound = outbound_df
-    outputs$return = return_df
-  })  
+    dfs = make_table(fileContent())
+    outputs$outbound_cost = dfs[[1]]
+    outputs$outbound_vessel = dfs[[2]]
+    outputs$return_cost = dfs[[3]]
+    outputs$return_vessel = dfs[[4]]
+  })
   
   output$outbound = renderReactable({
-    req(outputs$outbound)
-    reactable(outputs$outbound)
+    req(outputs$outbound_cost)
+    make_reactable(outputs$outbound_cost, outputs$outbound_vessel, input$date)
   })
   
   output$return = renderReactable({
-    req(outputs$return)
-    reactable(outputs$return)
+    req(outputs$return_cost)
+    if (!is.null(outputs$return_cost)) make_reactable(outputs$return_cost, outputs$return_vessel, input$return_date)
   })
-  
-  #output$outbound_ui = renderUI(if (github_file()) withSpinner(reactableOutput("outbound")))
   
 }
 

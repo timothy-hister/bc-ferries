@@ -91,6 +91,6 @@ github_commit = function(owner = "timothy-hister", repo, branch = "main", token,
   stopifnot(update$status_code == 200)
   
   # Success message
-  cat("File", file_path, "committed, and pushed to GitHub successfully with message: ", message)
+  cat("File", file_path, "committed, and pushed to GitHub successfully with message: ", message, "\n")
   
 }
