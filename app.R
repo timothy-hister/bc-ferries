@@ -1,6 +1,6 @@
-pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy)
+is_test_run = T
 
-is_test_run = F
+pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy)
 
 berths = list(
   "Vancouver (Tsawwassen)",
@@ -18,7 +18,8 @@ source("token.R", local = T)
 source("make_table.R", local = T)
 source("make_reactable.R", local = T)
 
-session_id = if_else(is_test_run, sample(c(22733055L, 2641081L), 1), as.integer(runif(1, 0, 10^8)))
+#session_id = if_else(is_test_run, sample(c(22733055L, 2641081L), 1), as.integer(runif(1, 0, 10^8)))
+session_id = if_else(is_test_run, sample(7070247, 1), as.integer(runif(1, 0, 10^8)))
 # note: the repo needs this: actions > general > workflow permissions > read and write
 
 ui = page_sidebar(
@@ -26,10 +27,10 @@ ui = page_sidebar(
   useShinyjs(),
   title = "Because the BC Ferries Website Sucks",
   sidebar = sidebar(
-    pickerInput("departure", "Departure", choices = berths, selected = "Vancouver (Tsawwassen)", multiple = F),
-    pickerInput("arrival", "Arrival", choices = berths, selected = "Victoria (Swartz Bay)", multiple = F),
-    prettySwitch("roundtrip", "Roundtrip?", value = F),
-    airDatepickerInput("date", "Select Your Date", minDate = today(), value = today() + 2),
+    pickerInput("departure_terminal", "Departure Terminal", choices = berths, selected = "Vancouver (Tsawwassen)", multiple = F),
+    pickerInput("arrival_terminal", "Arrival Terminal", choices = berths, selected = "Victoria (Swartz Bay)", multiple = F),
+    prettySwitch("is_roundtrip", "Roundtrip?", value = F),
+    airDatepickerInput("departure_date", "Departure Date", minDate = today(), value = today() + 2),
     hidden(airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 4)),
     sliderInput("plusminus", "How many days before/after do you wanna search?", min = 0, max = 10, value = 2),
     actionBttn("go", "Search Sailings!")
@@ -37,15 +38,15 @@ ui = page_sidebar(
   accordion(
     id = "accordion", 
     accordion_panel(
-      title = "Outbound",
-      reactableOutput("outbound") |> withSpinner(),
+      title = "Outbound Sailings",
+      reactableOutput("outbound_tbl") |> withSpinner(),
       value = "outbound_panel"
     ),
     div(
       id = "return_accordion",
       accordion_panel(
-        title = "Return",
-        reactableOutput("return") |> withSpinner(),
+        title = "Return Sailings",
+        reactableOutput("return_tbl") |> withSpinner(),
         value = "return_panel"
       )
     )
@@ -53,16 +54,14 @@ ui = page_sidebar(
 )
 
 server = function(input, output, session) {
-  observe({
-    accordion_panel_update(id = "accordion", target = "outbound_panel", title = HTML("<strong>Outbound</strong>:", input$departure, "==>", input$arrival))
-    accordion_panel_update(id = "accordion", target = "return_panel", title = HTML("<strong>Return</strong>:", input$arrival, "==>", input$departure))
-  })
   
-  output$header_outbound = renderText(paste("Outbound:", input$departure))
-  output$header_return = renderText(paste("Return:", input$arrival))
-                                      
+  # initialize reactive values
+  github_file = reactiveVal(F)
+  python_file = reactiveVal()
+  sailings_tbls = reactiveValues()
   
-  observeEvent(input$roundtrip, if (input$roundtrip) {
+  # show/hide return panel
+  observeEvent(input$is_roundtrip, if (input$is_roundtrip) {
     show("return_accordion")
     show("return_date")
   } else {
@@ -70,63 +69,64 @@ server = function(input, output, session) {
     hide("return_date")
   })
   
-  github_file = reactiveVal(F)
-  fileContent = reactiveVal()
-  outputs = reactiveValues()
-  
   observeEvent(input$go, {
     print("Let's A Go!")
     
     github_file = reactiveVal(F)
-    fileContent = reactiveVal()
-    outputs = reactiveValues()
-    go_clicked = reactiveVal(T)
+    python_file = reactiveVal()
+    sailings_tbls = reactiveValues()
     
-    showSpinner("outbound")
-    showSpinner("return")
+    showSpinner("outbound_tbl")
+    showSpinner("return_tbl")
   })
   
-  # commit to the repo
-  observeEvent(input$go, {
+  # make df of all the sailings to search
+  sailings = eventReactive(input$go, {
+    df = crossing(is_outbound = T, departure_terminal = input$departure_terminal, arrival_terminal = input$arrival_terminal, date = input$departure_date + seq(-input$plusminus, input$plusminus))
+    if (input$is_roundtrip) df = bind_rows(df, crossing(is_outbound = F, departure_terminal = input$arrival_terminal, arrival_terminal = input$departure_terminal, date = input$return_date + seq(-input$plusminus, input$plusminus)))
+    return(df)
+  })
+  
+  observe(print(sailings()))
+  
+  # commit to github
+  observeEvent(sailings(), {
     if (!is_test_run) {
-      if (!dir_exists("jsons")) dir_create("jsons")
-      
-      sailings = list(session_id = session_id)
-      sailings$outbound_dates = input$date + seq(-input$plusminus, input$plusminus)
-      sailings$departure = input$departure
-      sailings$arrival = input$arrival
-      sailings$roundtrip = as.integer(input$roundtrip)
-      sailings$return_dates = input$return_date + seq(-input$plusminus, input$plusminus)
-      
-      sailings |>
-        write_json("jsons/bcf_" %,% session_id %,% ".json")
+      if (!dir_exists("from_r")) dir_create("from_r")
+      write_json(sailings(), "from_r/from_r_" %,% session_id %,% ".json")
       github_commit(
         repo = "bcftest", 
         branch = "main", 
         token = token, 
-        file_path = "jsons/bcf_" %,% session_id %,% ".json", 
-        message = "shiny_commit_" %,% session_id
+        file_path = "from_r/from_r_" %,% session_id %,% ".json", 
+        message = "This is a Shiny commit with session_id" %,,% session_id %,,% "and n_sailings" %,,% nrow(sailings())
       )
     }
   })
   
+  # get your data from github
   observeEvent(input$go, {
-    while(T) {
-      print("github:" %,,% github_file())
+    for (i in 1:nrow(sailings())) {
+      print(i)
       tryCatch({
-        "https://raw.githubusercontent.com/timothy-hister/bcftest/main/dfs/df_" %,% session_id %,% ".json" |>
-          httr2::request() |>
-          httr2::req_perform() |>
-          httr2::resp_body_json(check_type = F) |>
-          fileContent()
-        github_file(T)
-      }, error = function(e) return()
+        'https://raw.githubusercontent.com/timothy-hister/bcftest/main/from_python/from_python_' %,% session_id %,% '_' %,% i %,% '.json' |>
+          request() |>
+          req_auth_bearer_token(token) |>
+          req_perform() |>
+          resp_body_json(check_type = F) |>
+          unlist() |>
+          str_split("\n") |>
+          map(function(sailing) tibble(depart_time = sailing[2], length = sailing[3], arrive_time = sailing[5], vessel = sailing[6], fare = sailing[8], sold_out = str_detect(sailing[9], "sold out"))) |>
+          bind_rows() |>
+          mutate(fare = as.double(str_remove(fare, "\$"))) |>
+          python_file()
+          break
+        }, error = function(e) {
+          print("nope")
+          Sys.sleep(4)
+        }
       )
-      if (github_file()) break
-      Sys.sleep(4)
-    }
     
-    print("github:" %,,% github_file())
     
     
     dfs = make_table(fileContent())
@@ -135,6 +135,14 @@ server = function(input, output, session) {
     outputs$return_cost = dfs[[3]]
     outputs$return_vessel = dfs[[4]]
   })
+  
+  observe({
+    accordion_panel_update(id = "accordion", target = "outbound_panel", title = HTML("<strong>Outbound</strong>:", input$departure, "==>", input$arrival))
+    accordion_panel_update(id = "accordion", target = "return_panel", title = HTML("<strong>Return</strong>:", input$arrival, "==>", input$departure))
+  })
+  
+  output$header_outbound = renderText(paste("Outbound:", input$departure))
+  output$header_return = renderText(paste("Return:", input$arrival))
   
   output$outbound = renderReactable({
     req(outputs$outbound_cost)
