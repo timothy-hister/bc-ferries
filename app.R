@@ -86,7 +86,10 @@ server = function(input, output, session) {
   sailings = eventReactive(input$go, {
     df = crossing(is_outbound = T, departure_terminal = input$departure_terminal, arrival_terminal = input$arrival_terminal, date = input$departure_date + seq(-input$plusminus, input$plusminus))
     if (input$is_roundtrip) df = bind_rows(df, crossing(is_outbound = F, departure_terminal = input$arrival_terminal, arrival_terminal = input$departure_terminal, date = input$return_date + seq(-input$plusminus, input$plusminus)))
-    return(df)
+    df |>
+      mutate(arr = case_when(is_outbound ~ abs(date - input$departure_date), T ~ abs(date - input$return_date))) |>
+      arrange(arr, desc(is_outbound), desc(date)) |>
+      select(-arr)
   })
   
   # commit to github
