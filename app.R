@@ -1,6 +1,6 @@
 is_test_run = T
 
-pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy)
+pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy, lubridate, RColorBrewer)
 
 berths = list(
   "Vancouver (Tsawwassen)",
@@ -15,11 +15,11 @@ berths = list(
 
 source("github.R", local = T)
 source("token.R", local = T)
-source("make_table.R", local = T)
+#source("make_table.R", local = T)
 source("make_reactable.R", local = T)
 
 #session_id = if_else(is_test_run, sample(c(22733055L, 2641081L), 1), as.integer(runif(1, 0, 10^8)))
-session_id = if_else(is_test_run, sample(7070247, 1), as.integer(runif(1, 0, 10^8)))
+session_id = if_else(is_test_run, 7070247, as.integer(runif(1, 0, 10^8)))
 # note: the repo needs this: actions > general > workflow permissions > read and write
 
 ui = page_sidebar(
@@ -55,29 +55,31 @@ ui = page_sidebar(
 
 server = function(input, output, session) {
   
+  
+  observe({
+    accordion_panel_update(id = "accordion", target = "outbound_panel", title = HTML("<strong>Outbound</strong>:", input$departure_terminal, "==>", input$arrival_terminal))
+    accordion_panel_update(id = "accordion", target = "return_panel", title = HTML("<strong>Return</strong>:", input$arrival_terminal, "==>", input$departure_terminal))
+  })
+  
+  # card headers
+  #output$header_outbound = renderText(paste("Outbound:", input$departure_terminal))
+  #output$header_return = renderText(paste("Return:", input$arrival_terminal))
+  
+  
   # initialize reactive values
   github_file = reactiveVal(F)
   python_file = reactiveVal()
-  sailings_tbls = reactiveValues()
+  sailings_tbl = reactiveVal()
   
   # show/hide return panel
-  observeEvent(input$is_roundtrip, if (input$is_roundtrip) {
-    show("return_accordion")
-    show("return_date")
-  } else {
-    hide("return_accordion")
-    hide("return_date")
-  })
-  
-  observeEvent(input$go, {
-    print("Let's A Go!")
-    
-    github_file = reactiveVal(F)
-    python_file = reactiveVal()
-    sailings_tbls = reactiveValues()
-    
-    showSpinner("outbound_tbl")
-    showSpinner("return_tbl")
+  observeEvent(input$is_roundtrip, {
+    if (input$is_roundtrip) {
+      show("return_accordion")
+      show("return_date")
+    } else {
+      hide("return_accordion")
+      hide("return_date")
+    }
   })
   
   # make df of all the sailings to search
@@ -87,10 +89,8 @@ server = function(input, output, session) {
     return(df)
   })
   
-  observe(print(sailings()))
-  
   # commit to github
-  observeEvent(sailings(), {
+  observeEvent(input$go, {
     if (!is_test_run) {
       if (!dir_exists("from_r")) dir_create("from_r")
       write_json(sailings(), "from_r/from_r_" %,% session_id %,% ".json")
@@ -104,55 +104,50 @@ server = function(input, output, session) {
     }
   })
   
+  
   # get your data from github
   observeEvent(input$go, {
-    for (i in 1:nrow(sailings())) {
-      print(i)
-      tryCatch({
-        'https://raw.githubusercontent.com/timothy-hister/bcftest/main/from_python/from_python_' %,% session_id %,% '_' %,% i %,% '.json' |>
-          request() |>
-          req_auth_bearer_token(token) |>
-          req_perform() |>
-          resp_body_json(check_type = F) |>
-          unlist() |>
-          str_split("\n") |>
-          map(function(sailing) tibble(depart_time = sailing[2], length = sailing[3], arrive_time = sailing[5], vessel = sailing[6], fare = sailing[8], sold_out = str_detect(sailing[9], "sold out"))) |>
-          bind_rows() |>
-          mutate(fare = as.double(str_remove(fare, "\$"))) |>
-          python_file()
-          break
+    github_file = reactiveVal(F)
+    python_file = reactiveVal()
+    showSpinner("outbound_tbl")
+    showSpinner("return_tbl")
+    
+    for (i in 1:(nrow(sailings()))) {
+      while (T) {
+        tryCatch({
+          'https://raw.githubusercontent.com/timothy-hister/bcftest/main/from_python/from_python_' %,% session_id %,% '_' %,% i %,% '.json' |>
+            request() |>
+            req_auth_bearer_token(token) |>
+            req_perform() |>
+            resp_body_json(check_type = F) |>
+            unlist() |>
+            str_split("\n") |>
+            map(function(sailing) tibble(depart_time = sailing[2], length = sailing[3], arrive_time = sailing[5], vessel = sailing[6], fare = sailing[8], sold_out = str_detect(sailing[9], "sold out"))) |>
+            bind_rows() |>
+            mutate(fare = as.double(str_remove(fare, "\\$"))) |>
+            bind_cols(sailings()[i, ]) |>
+            python_file()
+            sailings_tbl(bind_rows(sailings_tbl(), python_file()))
+            break
         }, error = function(e) {
           print("nope")
           Sys.sleep(4)
-        }
-      )
-    
-    
-    
-    dfs = make_table(fileContent())
-    outputs$outbound_cost = dfs[[1]]
-    outputs$outbound_vessel = dfs[[2]]
-    outputs$return_cost = dfs[[3]]
-    outputs$return_vessel = dfs[[4]]
+        })
+      }
+    }
   })
   
-  observe({
-    accordion_panel_update(id = "accordion", target = "outbound_panel", title = HTML("<strong>Outbound</strong>:", input$departure, "==>", input$arrival))
-    accordion_panel_update(id = "accordion", target = "return_panel", title = HTML("<strong>Return</strong>:", input$arrival, "==>", input$departure))
+  
+  output$outbound_tbl = renderReactable({
+    req(sailings_tbl())
+    make_reactable(sailings_tbl(), T, input$date)
   })
   
-  output$header_outbound = renderText(paste("Outbound:", input$departure))
-  output$header_return = renderText(paste("Return:", input$arrival))
-  
-  output$outbound = renderReactable({
-    req(outputs$outbound_cost)
-    make_reactable(outputs$outbound_cost, outputs$outbound_vessel, input$date)
+  output$return_tbl = renderReactable({
+    req(sailings_tbl())
+    if (nrow(filter(sailings_tbl(), is_outbound == F)) > 0) make_reactable(sailings_tbl(), F, input$return_date)
   })
   
-  output$return = renderReactable({
-    req(outputs$return_cost)
-    if (!is.null(outputs$return_cost)) make_reactable(outputs$return_cost, outputs$return_vessel, input$return_date)
-  })
   
 }
 
