@@ -2,12 +2,12 @@ is_test_run = T
 
 pacman::p_load(shiny, bslib, tidyverse, rvest, stringr, reactable, scales, shinyWidgets, shinycssloaders, shinyjs, gh, httr2, jsonlite, fs, tippy, lubridate, RColorBrewer)
 
-berths = list(
-  "Vancouver (Tsawwassen)",
-  "Victoria (Swartz Bay)",
-  "Vancouver (Horseshoe Bay)",
-  "Sunshine Coast (Langdale)",
-  "Nanaimo (Departure Bay)"
+terminals = list(
+  "Vancouver (Tsawwassen)" = "TSA",
+  "Victoria (Swartz Bay)" = "VSB",
+  "Vancouver (Horseshoe Bay)" = "HSB",
+  "Sunshine Coast (Langdale)" = "LAN",
+  "Nanaimo (Departure Bay)" = "NAN"
 )
 
 `%,,%` = function(a,b) paste(a,b)
@@ -27,8 +27,8 @@ ui = page_sidebar(
   useShinyjs(),
   title = "Because the BC Ferries Website Sucks",
   sidebar = sidebar(
-    pickerInput("departure_terminal", "Departure Terminal", choices = berths, selected = "Vancouver (Tsawwassen)", multiple = F),
-    pickerInput("arrival_terminal", "Arrival Terminal", choices = berths, selected = "Victoria (Swartz Bay)", multiple = F),
+    pickerInput("departure_terminal", "Departure Terminal", choices = names(terminals), selected = "Vancouver (Tsawwassen)", multiple = F),
+    pickerInput("arrival_terminal", "Arrival Terminal", choices = names(terminals), selected = "Victoria (Swartz Bay)", multiple = F),
     prettySwitch("is_roundtrip", "Roundtrip?", value = F),
     airDatepickerInput("departure_date", "Departure Date", minDate = today(), value = today() + 2),
     hidden(airDatepickerInput("return_date", "Select Your Return Date", minDate = today(), value = today() + 4)),
@@ -84,8 +84,8 @@ server = function(input, output, session) {
   
   # make df of all the sailings to search
   sailings = eventReactive(input$go, {
-    df = crossing(is_outbound = T, departure_terminal = input$departure_terminal, arrival_terminal = input$arrival_terminal, date = input$departure_date + seq(-input$plusminus, input$plusminus))
-    if (input$is_roundtrip) df = bind_rows(df, crossing(is_outbound = F, departure_terminal = input$arrival_terminal, arrival_terminal = input$departure_terminal, date = input$return_date + seq(-input$plusminus, input$plusminus)))
+    df = crossing(is_outbound = T, departure_terminal = terminals[input$departure_terminal], arrival_terminal = terminals[input$arrival_terminal], date = input$departure_date + seq(-input$plusminus, input$plusminus))
+    if (input$is_roundtrip) df = bind_rows(df, crossing(is_outbound = F, departure_terminal = terminals[input$arrival_terminal], arrival_terminal = terminals[input$departure_terminal], date = input$return_date + seq(-input$plusminus, input$plusminus)))
     df |>
       mutate(arr = case_when(is_outbound ~ abs(date - input$departure_date), T ~ abs(date - input$return_date))) |>
       arrange(arr, desc(is_outbound), desc(date)) |>
