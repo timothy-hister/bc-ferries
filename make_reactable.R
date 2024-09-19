@@ -4,40 +4,27 @@ with_tooltip <- function(value, tooltip, ...) {
 }
 
 
-create_flexible_style <- function(min_value, max_value, italic_column = NULL, alpha = 0.3) {
-  base_palette <- brewer.pal(11, "RdYlGn")
-  transparent_palette <- sapply(base_palette, function(color) {
-    rgb_values <- col2rgb(color)
-    rgb(rgb_values[1], rgb_values[2], rgb_values[3], alpha = alpha * 255, maxColorValue = 255)
-  })
-  palette <- colorRampPalette(transparent_palette)(100)
+create_color_scale <- function(min_value, max_value) {
+  palette <- colorRampPalette(brewer.pal(11, "RdYlGn"))(100)
   
-  function(value, index, name, id) {
-    if (is.na(value) || !is.numeric(value)) return(NULL)
+  function(value) {
+    if (is.na(value)) return(NULL)
     
     normalized <- (value - min_value) / (max_value - min_value)
     color_index <- round(normalized * 99) + 1
     background_color <- palette[color_index]
     
-    style <- list(
+    list(
       background = background_color,
-      color = "black",  # Changed to always black due to transparency
+      color = if (normalized < 0.5) "black" else "white",
       fontWeight = "bold",
-      padding = "0.5rem",
+      padding = "0.3rem",
       borderRadius = "4px"
     )
-    
-    if (!is.null(italic_column) && name == italic_column) {
-      style$fontStyle <- "italic"
-    }
-    
-    style
   }
 }
 
-make_reactable = function(sailings_tbl, is_outbound, highlight_col) {
-  #browser()
-  
+make_reactable = function(sailings_tbl, is_outbound) {
   sailings_df = sailings_tbl |>
     filter(is_outbound) |>
     select(date, depart_time, fare) |>
@@ -47,13 +34,9 @@ make_reactable = function(sailings_tbl, is_outbound, highlight_col) {
   min_amount <- min(sailings_tbl$fare, na.rm = TRUE)
   max_amount <- max(sailings_tbl$fare, na.rm = TRUE)
   
-  highlight_col = format.Date(highlight_col, format = "%a, %b %d")
-  
-  style_func <- create_flexible_style(min_amount, max_amount, highlight_col)
-  
   colDefs = lapply(names(sailings_df)[2:ncol(sailings_df)], function(col_name) {
     colDef(
-      #style = style_func
+      style = create_color_scale(min_amount, max_amount),
       cell = function(value, index, id) with_tooltip(value,
     "Date:" %,,% col_name %,%
     "<br>Departure Time:" %,,% sailings_df[[index, 1]] %,%
@@ -65,12 +48,9 @@ make_reactable = function(sailings_tbl, is_outbound, highlight_col) {
   }) |>
     set_names(names(sailings_df)[2:ncol(sailings_df)] |> format.Date(format = "%a, %b %d"))
   
-  #print(sailings_df)
-  
   sailings_df |>
     set_names(c("Depart Time", format.Date(names(sailings_df)[-1], format = "%a, %b %d"))) |>
     reactable(
-      defaultColDef = colDef(),
       columns = colDefs,
       defaultPageSize = 100L,
       bordered = T

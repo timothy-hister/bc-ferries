@@ -54,6 +54,9 @@ ui = page_sidebar(
 )
 
 server = function(input, output, session) {
+  python_files = reactiveValues()
+  sailings_tbl = reactiveVal() # maybe?
+  loaded_data = reactiveVal()
   
   
   observe({
@@ -67,9 +70,9 @@ server = function(input, output, session) {
   
   
   # initialize reactive values
-  github_file = reactiveVal(F)
-  python_file = reactiveVal()
-  sailings_tbl = reactiveVal()
+  # github_file = reactiveVal(F)
+  # python_file = reactiveVal()
+  # sailings_tbl = reactiveVal()
   
   # show/hide return panel
   observeEvent(input$is_roundtrip, {
@@ -105,17 +108,11 @@ server = function(input, output, session) {
   })
   
   
-  # get your data from github
-  observeEvent(input$go, {
-    github_file = reactiveVal(F)
-    python_file = reactiveVal()
-    showSpinner("outbound_tbl")
-    showSpinner("return_tbl")
-    
+  check_and_load_data = function() {
     for (i in 1:(nrow(sailings()))) {
-      while (T) {
+        if (i %in% loaded_data()) next
         tryCatch({
-          'https://raw.githubusercontent.com/timothy-hister/bcftest/main/from_python/from_python_' %,% session_id %,% '_' %,% i %,% '.json' |>
+          python_files[[as.character(i)]] = 'https://raw.githubusercontent.com/timothy-hister/bcftest/main/from_python/from_python_' %,% session_id %,% '_' %,% i %,% '.json' |>
             request() |>
             req_auth_bearer_token(token) |>
             req_perform() |>
@@ -125,27 +122,52 @@ server = function(input, output, session) {
             map(function(sailing) tibble(depart_time = sailing[2], length = sailing[3], arrive_time = sailing[5], vessel = sailing[6], fare = sailing[8], sold_out = str_detect(sailing[9], "sold out"))) |>
             bind_rows() |>
             mutate(fare = as.double(str_remove(fare, "\\$"))) |>
-            bind_cols(sailings()[i, ]) |>
-            python_file()
-            sailings_tbl(bind_rows(sailings_tbl(), python_file()))
-            break
+            bind_cols(sailings()[i, ])
+          
+          loaded_data(c(loaded_data(), i))
         }, error = function(e) {
-          print("nope")
-          Sys.sleep(4)
+            break
         })
-      }
     }
+  }
+  
+  # get your data from github
+  observeEvent(input$go, {
+    python_files = reactiveValues()
+    sailings_tbl = reactiveVal() # maybe?
+    loaded_data = reactiveVal()
+    
+    showSpinner("outbound_tbl")
+    showSpinner("return_tbl")
+  })
+  
+  
+  sailings_tbl <- reactive({
+    print('sailings_tbl')
+    check_and_load_data()
+    do.call(rbind, lapply(names(python_files), function(name) python_files[[name]]))
   })
   
   
   output$outbound_tbl = renderReactable({
     req(sailings_tbl())
-    make_reactable(sailings_tbl(), T, input$date)
+    make_reactable(sailings_tbl(), T)
   })
+  
   
   output$return_tbl = renderReactable({
     req(sailings_tbl())
-    if (nrow(filter(sailings_tbl(), is_outbound == F)) > 0) make_reactable(sailings_tbl(), F, input$return_date)
+    if (nrow(filter(sailings_tbl(), is_outbound == F)) > 0) make_reactable(sailings_tbl(), F)
+  })
+  
+  observe({
+    if (length(loaded_data()) < nrow(sailings())) {
+      print('final observe')
+      print(loaded_data())
+      print(nrow(sailings()))
+      invalidateLater(3000)  # Check every 1000 ms (1 second)
+      check_and_load_data()
+    }
   })
   
   
